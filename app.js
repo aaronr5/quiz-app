@@ -6,7 +6,7 @@ var state = {
     currentQuestion: 1,
     questions: [
         {
-            question: "Who was the 450 Motocross Champion in 2016?",
+            question: "Who was the 450cc class Motocross Champion in 2016?",
             options: [
                 "Ryan Dungey", "Ken Roczen", "James Stewart", "Marvin Musquin"
             ],
@@ -18,23 +18,23 @@ var state = {
             ],
             correct: "Ricky Carmichael"
         }, {
-            question: "Who was the 450 Motocross Champion in 2016?",
+            question: "What size motors are used in the premiere class?",
             options: [
-                "Ryan Dungey", "Ken Roczen", "James Stewart", "Marvin Musquin"
+                "250cc", "85cc", "450cc", "125cc"
             ],
-            correct: "Ken Roczen"
+            correct: "450cc"
         }, {
-            question: "Who was the 450 Motocross Champion in 2016?",
+            question: "What rider is famously known as the 'King of Supercross'?",
             options: [
-                "Ryan Dungey", "Ken Roczen", "James Stewart", "Marvin Musquin"
+                "Jeremy mcGrath", "Chad Reed", "Jeff Emig", "Kevin Windham"
             ],
-            correct: "Ken Roczen"
+            correct: "Jeremy mcGrath"
         }, {
-            question: "Who was the 450 Motocross Champion in 2016?",
+            question: "Who was the 250cc class Motocross Champion in 2016?",
             options: [
-                "Ryan Dungey", "Ken Roczen", "James Stewart", "Marvin Musquin"
+                "Jeremy Martin", "Cooper Webb", "Tyler Bowers", "Alex Martin"
             ],
-            correct: "Ken Roczen"
+            correct: "Cooper Webb"
         }
     ]
 };
@@ -44,9 +44,13 @@ var state = {
 var startQuizString = ('<button id="start-button">Start Quiz!</button>');
 
 var questionTemplate = '<div class="js-current-question"></div>' +
-'<ul class="js-question-choices">' + '</ul>' + '<footer class= "js-question-footer">' + '<div class="js-question-number"></div>' + '<div class="js-current-score"></div>' + '</footer>';
+'<ul class="js-question-choices">' + '</ul>' +
+'<div><button id="js-answer-submit">Submit</button></div>' +
+ '<footer class= "js-question-footer">' + '<div class="js-question-number"></div>' + '<div class="js-current-score"></div>' + '</footer>';
 
-//var endQuizString = ();
+var endQuizString = '<div class="js-current-question"><p>Results:</p></div>' +
+'<div class="js-current-score"><p></p></div>' +
+'div><button id="js-try-again">Try Again!</button></div>';
 
 // State Manipulating Functions ////////////////////////////////////////////////
 
@@ -54,27 +58,59 @@ function getQuestion(state, index) {
     return state.questions[index];
 }
 
+function getAnswer(questions, index) {
+  var correctAnswer = getQuestion(state, index).correct;
+  var answerIndex = getQuestion(state, index).options.indexOf(correctAnswer);
+  return answerIndex;
+}
+
+function updateScore(usersAnswer, correctAnswer, score) {
+  if(usersAnswer === correctAnswer){
+    state.score.correct++;
+  }else{
+    state.score.incorrect++;
+  }
+
+}
+
+function incrementQuestionNumber(state) {
+  state.currentQuestion++;
+}
+
 // Dom rendering functions /////////////////////////////////////////////////////
 
 function renderQuestion(questionTemplate, questions, currentQuestion, score) {
     var questionElement = $(questionTemplate);
-    questionElement.find('.js-current-question').append(state.questions[currentQuestion - 1].question);
+    questionElement.find('.js-current-question').append('<p>' + state.questions[currentQuestion].question + '</p>');
     questionElement.find('.js-question-number').append('<p>Question ' + state.currentQuestion + ' of ' + state.questions.length + '</p>');
     questionElement.find('.js-current-score').append('<p>Correct: ' + score.correct + ' Incorrect: ' + score.incorrect + '</p>');
     //creates html for answer choices
     for (var i = 0; i < questions.length - 1; i++) {
         questionElement.find('.js-question-choices').append('<li><input type="radio" name="question-answer" />' + questions[currentQuestion - 1].options[i] + '</li>');
-        console.log(questions[currentQuestion - 1].options[i]);
     }
     $('.display-section').html(questionElement);
 }
 
+function renderResults(score) {
+  var resultsElement = $(endQuizString);
+  resultsElement.find('.js-current-score').text('Correct: ' + score.correct + ' Incorrect: ' + score.incorrect);
+  $('.display-section').html(resultsElement);
+}
+
+// Event Handlers //////////////////////////////////////////////////////////////
+
 function handleStartClick(state, displayElement) {
-    $(displayElement).click(function(event) {
+    $('#start-button').click(function(event) {
         event.preventDefault;
 
         renderQuestion(questionTemplate, state.questions, state.currentQuestion, state.score);
     });
+}
+
+function questionSubmit(state) {
+  $('.display-section').on('click', '#js-answer-submit', function(event) {
+    console.log('submit');
+  })
 }
 
 // Ready function //////////////////////////////////////////////////////////////
@@ -90,5 +126,6 @@ $(document).ready(function() {
     $(displayElement).html(startQuizString);
 
     handleStartClick(state, displayElement);
+    questionSubmit(state);
 
 })
