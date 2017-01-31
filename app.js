@@ -141,7 +141,6 @@ function questionSubmit(state) {
   $('.display-section').on('click', '#js-answer-submit', function(event) {
     var userAnswer = $('input[name=question-answer]:checked').next().text();
     if(!userAnswer) {
-      console.log("NO ANSWER");
       $('.no-answer-error').remove();
       $('#js-answer-submit').after('<p class="no-answer-error">Choose an answer!</p>');
       return 0;
