@@ -82,3 +82,26 @@ button:hover {
   display: inline-block;
   font-size: 15px;
 }
+
+.correct {
+  font-size: 20px;
+  color: green;
+}
+
+.incorrect {
+  font-size: 20px;
+  color: red;
+}
+
+.js-final-score {
+  font-size: 30px;
+}
+
+.no-answer-error {
+  color: red;
+  font-size: 15px;
+}
+
+.correct-answer {
+  font-size: 30px;
+}

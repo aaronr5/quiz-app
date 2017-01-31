@@ -48,9 +48,9 @@ var questionTemplate = '<div><div class="js-current-question"></div>' +
 '<div><button id="js-answer-submit">Submit Answer</button></div>' +
  '<footer class= "js-question-footer">' + '<div class="js-question-number"></div>' + '<div class="js-current-score"></div>' + '</footer></div>';
 
-var endQuizString = '<div class="js-current-question"><p>Results:</p></div>' +
-'<div class="js-current-score"><p></p></div>' +
-'div><button id="js-try-again">Try Again!</button></div>';
+var endQuizString = '<div><div class="js-current-question"><p>Results:</p></div>' +
+'<div class="js-final-score"><p></p></div>' +
+'div><button id="js-try-again">Try Again!</button></div></div>';
 
 // State Manipulating Functions ////////////////////////////////////////////////
 
@@ -83,6 +83,11 @@ function incrementQuestionNumber(state) {
   return state.currentQuestion;
 }
 
+function resetQuizState(state) {
+  state.currentQuestion = 1;
+  state.score = { correct: 0, incorrect: 0};
+}
+
 
 // Dom rendering functions /////////////////////////////////////////////////////
 
@@ -100,21 +105,25 @@ function renderQuestion(questionTemplate, questions, currentQuestion, score) {
 
 function renderPostQuestion(correct) {
   $('.js-question-choices').remove();
+  if(state.currentQuestion === state.questions.length) {
+    $('#js-answer-submit').replaceWith('<button id="js-view-results">View Results!</button>');
+  }
   $('#js-answer-submit').replaceWith('<button id="js-next-question">Next Question</button>');
 
   $('.js-current-score').html('<p>Correct: ' + state.score.correct + ' Incorrect: ' + state.score.incorrect + '</p>');
 
   if(correct) {
-    $('.js-current-question').after('<p>Correct</p>');
+    $('.js-current-question').after('<p class="correct">Correct!</p>');
   }else {
-    $('.js-current-question').after('<p>Incorrect</p>');
+    $('.js-current-question').after('<p class="incorrect">Incorrect!</p>');
+    $('.incorrect').after('<p class="correct-answer">Correct Answer: ' + state.questions[state.currentQuestion - 1].correct + "</p>");
   }
 
 }
 
 function renderResults(score) {
   var resultsElement = $(endQuizString);
-  resultsElement.find('.js-current-score').text('Correct: ' + score.correct + ' Incorrect: ' + score.incorrect);
+  resultsElement.find('.js-final-score').text('Correct: ' + score.correct + ' Incorrect: ' + score.incorrect);
   $('.display-section').html(resultsElement);
 }
 
@@ -131,17 +140,38 @@ function handleStartClick(state, displayElement) {
 function questionSubmit(state) {
   $('.display-section').on('click', '#js-answer-submit', function(event) {
     var userAnswer = $('input[name=question-answer]:checked').next().text();
-    renderPostQuestion(updateScore(userAnswer, state.questions[state.currentQuestion - 1].correct, state.score))
+    if(!userAnswer) {
+      console.log("NO ANSWER");
+      $('.no-answer-error').remove();
+      $('#js-answer-submit').after('<p class="no-answer-error">Choose an answer!</p>');
+      return 0;
+    }
+    $('.no-answer-error').remove();
+    renderPostQuestion(updateScore(userAnswer, state.questions[state.currentQuestion - 1].correct, state.score));
   });
 }
 
 function nextQuestionHandler(state) {
   $('.display-section').on('click', '#js-next-question', function(event) {
-    console.log('it clicked next question');
     incrementQuestionNumber(state);
     renderQuestion(questionTemplate, state.questions, state.currentQuestion, state.score);
   });
 }
+
+function viewResultsHandler(state) {
+  $('.display-section').on('click', '#js-view-results', function() {
+    renderResults(state.score);
+  });
+}
+
+
+function tryAgainHandler(state) {
+  $('.display-section').on('click', '#js-try-again', function() {
+    resetQuizState(state);
+    renderQuestion(questionTemplate, state.questions, state.currentQuestion, state.score);
+  });
+}
+
 
 // Ready function //////////////////////////////////////////////////////////////
 
@@ -158,5 +188,7 @@ $(document).ready(function() {
     handleStartClick(state, displayElement);
     questionSubmit(state);
     nextQuestionHandler(state);
+    viewResultsHandler(state);
+    tryAgainHandler(state);
 
 })
