@@ -43,10 +43,10 @@ var state = {
 
 var startQuizString = ('<button id="start-button">Start Quiz!</button>');
 
-var questionTemplate = '<div class="js-current-question"></div>' +
+var questionTemplate = '<div><div class="js-current-question"></div>' +
 '<ul class="js-question-choices">' + '</ul>' +
-'<div><button id="js-answer-submit">Submit</button></div>' +
- '<footer class= "js-question-footer">' + '<div class="js-question-number"></div>' + '<div class="js-current-score"></div>' + '</footer>';
+'<div><button id="js-answer-submit">Submit Answer</button></div>' +
+ '<footer class= "js-question-footer">' + '<div class="js-question-number"></div>' + '<div class="js-current-score"></div>' + '</footer></div>';
 
 var endQuizString = '<div class="js-current-question"><p>Results:</p></div>' +
 '<div class="js-current-score"><p></p></div>' +
@@ -65,30 +65,51 @@ function getAnswer(questions, index) {
 }
 
 function updateScore(usersAnswer, correctAnswer, score) {
+  var correct;
   if(usersAnswer === correctAnswer){
     state.score.correct++;
+    correct = true;
   }else{
     state.score.incorrect++;
+    correct = false;
   }
+
+  return correct;
 
 }
 
 function incrementQuestionNumber(state) {
   state.currentQuestion++;
+  return state.currentQuestion;
 }
+
 
 // Dom rendering functions /////////////////////////////////////////////////////
 
 function renderQuestion(questionTemplate, questions, currentQuestion, score) {
     var questionElement = $(questionTemplate);
-    questionElement.find('.js-current-question').append('<p>' + state.questions[currentQuestion].question + '</p>');
+    questionElement.find('.js-current-question').append('<p>' + state.questions[currentQuestion - 1].question + '</p>');
     questionElement.find('.js-question-number').append('<p>Question ' + state.currentQuestion + ' of ' + state.questions.length + '</p>');
     questionElement.find('.js-current-score').append('<p>Correct: ' + score.correct + ' Incorrect: ' + score.incorrect + '</p>');
     //creates html for answer choices
     for (var i = 0; i < questions.length - 1; i++) {
-        questionElement.find('.js-question-choices').append('<li><input type="radio" name="question-answer" />' + questions[currentQuestion - 1].options[i] + '</li>');
+        questionElement.find('.js-question-choices').append('<li><input type="radio" name="question-answer" />' + '<label for="question-answer">' + questions[currentQuestion - 1].options[i] + '</label></li>');
     }
     $('.display-section').html(questionElement);
+}
+
+function renderPostQuestion(correct) {
+  $('.js-question-choices').remove();
+  $('#js-answer-submit').replaceWith('<button id="js-next-question">Next Question</button>');
+
+  $('.js-current-score').html('<p>Correct: ' + state.score.correct + ' Incorrect: ' + state.score.incorrect + '</p>');
+
+  if(correct) {
+    $('.js-current-question').after('<p>Correct</p>');
+  }else {
+    $('.js-current-question').after('<p>Incorrect</p>');
+  }
+
 }
 
 function renderResults(score) {
@@ -109,8 +130,17 @@ function handleStartClick(state, displayElement) {
 
 function questionSubmit(state) {
   $('.display-section').on('click', '#js-answer-submit', function(event) {
-    console.log('submit');
-  })
+    var userAnswer = $('input[name=question-answer]:checked').next().text();
+    renderPostQuestion(updateScore(userAnswer, state.questions[state.currentQuestion - 1].correct, state.score))
+  });
+}
+
+function nextQuestionHandler(state) {
+  $('.display-section').on('click', '#js-next-question', function(event) {
+    console.log('it clicked next question');
+    incrementQuestionNumber(state);
+    renderQuestion(questionTemplate, state.questions, state.currentQuestion, state.score);
+  });
 }
 
 // Ready function //////////////////////////////////////////////////////////////
@@ -127,5 +157,6 @@ $(document).ready(function() {
 
     handleStartClick(state, displayElement);
     questionSubmit(state);
+    nextQuestionHandler(state);
 
 })
